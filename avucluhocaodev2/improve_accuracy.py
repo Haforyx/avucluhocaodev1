@@ -444,30 +444,60 @@ def plot_all(res, roc_scores, y, out: Path, title: str):
     fig.savefig(out / "roc_final_comparison.png", dpi=140)
     plt.close(fig)
 
-    # 4) Doğruluk merdiveni
+    plot_summary(res, out, title)
+
+
+def plot_summary(res: pd.DataFrame, out: Path, title: str):
+    """Yalnızca stage_results.csv ile çizilebilen özet grafikler."""
+    from matplotlib.colors import LogNorm
+
+    sns.set_theme(style="whitegrid")
+    algos = list(default_models())
     base = res[res["Aşama"].isin(STAGES)]
-    fig, ax = plt.subplots(figsize=(11, 6))
+    ens = res[res["Aşama"] == "Ensemble"].sort_values("Accuracy", ascending=False)
+
+    # 4) Doğruluk merdiveni: hata oranı (%) log ölçekte -> küçük farklar da görünür
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(15, 6.5), gridspec_kw={"width_ratios": [3, 1.3]})
+    pal = dict(zip(algos, sns.color_palette("tab10", len(algos))))
     for name in algos:
         d = base[base["Model"] == name].set_index("Aşama").loc[list(STAGES)]
-        ax.plot(list(STAGES), d["Accuracy"], marker="o", lw=2, label=name)
-    ens = res[res["Aşama"] == "Ensemble"]
-    for _, r in ens.iterrows():
-        ax.axhline(r["Accuracy"], ls=":", lw=1.2, color="gray")
-        ax.text(4.05, r["Accuracy"], f"{r['Model']} ({r['Accuracy']:.4f})", fontsize=7, va="center")
-    ax.set_xticks(range(len(STAGES)), [f"{k}\n{v}" for k, v in STAGES.items()], fontsize=8)
-    ax.set_ylabel("Test doğruluğu")
-    ax.set_title(f"{title}: her iyileştirme adımının doğruluğa etkisi")
-    ax.legend(loc="lower right")
-    ax.set_xlim(-0.2, 5.6)
+        err_rate = 100 * (1 - d["Accuracy"])
+        ax.plot(range(len(STAGES)), err_rate, marker="o", lw=2.2, color=pal[name], label=name)
+    best_ens = ens.iloc[0]
+    ax.axhline(100 * (1 - best_ens["Accuracy"]), ls="--", lw=1.2, color="black",
+               label=f"{best_ens['Model']} (en iyi topluluk)")
+    ax.set_yscale("log")
+    ax.set_xticks(range(len(STAGES)), [f"{k}\n{v.replace('& ', '&\n')}" for k, v in STAGES.items()], fontsize=8)
+    ax.set_ylabel("Test hata oranı % (log ölçek, aşağısı daha iyi)")
+    ax.set_title("Algoritma başına iyileştirme adımları")
+    ax.legend(loc="upper right", fontsize=8, ncol=2)
+    ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
+
+    # sağ panel: her algoritmanın en iyi hali + topluluklar
+    best = base.sort_values("Accuracy", ascending=False).drop_duplicates("Model")
+    final = pd.concat([best.assign(Tür="Tek model"), ens.assign(Tür="Topluluk")])
+    final = final.sort_values("Accuracy")
+    colors = ["#e45756" if t == "Topluluk" else "#4c78a8" for t in final["Tür"]]
+    ax2.barh([f"{m} [{a}]" if a != "Ensemble" else m for m, a in zip(final["Model"], final["Aşama"])],
+             100 * final["Accuracy"], color=colors)
+    for i, v in enumerate(100 * final["Accuracy"]):
+        ax2.text(v, i, f" %{v:.2f}", va="center", fontsize=8)
+    ax2.set_xlim(max(90, 100 * final["Accuracy"].min() - 1), 100.4)
+    ax2.set_xlabel("Test doğruluğu %")
+    ax2.set_title("En iyi sürümler (kırmızı = topluluk)")
+    ax2.tick_params(axis="y", labelsize=8)
+    fig.suptitle(f"{title}: her iyileştirme yönteminin doğruluğa etkisi", fontsize=13)
     fig.tight_layout()
     fig.savefig(out / "accuracy_ladder.png", dpi=150)
     plt.close(fig)
 
-    # 5) Hata sayısı ısı haritası
-    err = base.pivot(index="Model", columns="Aşama", values="Hata sayısı")[list(STAGES)]
+    # 5) Hata sayısı ısı haritası (log renk ölçeği)
+    err = base.pivot(index="Model", columns="Aşama", values="Hata sayısı")[list(STAGES)].loc[algos]
     fig, ax = plt.subplots(figsize=(9, 4.5))
-    sns.heatmap(err.loc[algos], annot=True, fmt="d", cmap="Reds", ax=ax, cbar_kws={"label": "Hatalı tahmin"})
+    sns.heatmap(err, annot=True, fmt="d", cmap="Reds", norm=LogNorm(vmin=max(1, err.values.min()),
+                vmax=err.values.max()), ax=ax, cbar_kws={"label": "Hatalı tahmin (log)"})
     ax.set_title(f"{title}: test kümesindeki hatalı tahmin sayısı")
+    ax.set_xticklabels([f"{k}" for k in STAGES])
     fig.tight_layout()
     fig.savefig(out / "errors_heatmap.png", dpi=150)
     plt.close(fig)
@@ -477,7 +507,15 @@ def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--dataset", choices=["enron", "sms"], default="enron")
     p.add_argument("--quick", action="store_true", help="3000 örneklik alt küme")
+    p.add_argument("--replot", action="store_true",
+                   help="deneyi çalıştırmadan stage_results.csv'den özet grafikleri yeniden çiz")
     args = p.parse_args()
+
+    if args.replot:
+        out = ROOT / "results" if args.dataset == "enron" else ROOT / "results" / "sms"
+        title = "Enron-Spam" if args.dataset == "enron" else "SMS Spam"
+        plot_summary(pd.read_csv(out / "stage_results.csv"), out, title)
+        return
 
     if args.dataset == "enron":
         df, title, out = sc.load_enron(), "Enron-Spam", ROOT / "results"

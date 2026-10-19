@@ -1,0 +1,82 @@
+[Enron-Spam] ham kayıt: 33716 | boş atılan: 52 | tekrarlı atılan: 4664 | kalan: 29000 (ham=14494, spam=14506)
+
+##### Enron-Spam | eğitim: 23200 | test: 5800 #####
+[A0] özellik matrisi: (23200, 140420)  (6.3s)
+[A1] özellik matrisi: (23200, 60432)  (5.4s)
+[A2] özellik matrisi: (23200, 300011)  (81.7s)
+
+--- A0: Temel (CountVectorizer, varsayılan) ---
+  Naive Bayes          A0: acc=0.9898 f1=0.9899 auc=0.99758 hata=  59 (0.1s)
+  Logistic Regression  A0: acc=0.9867 f1=0.9868 auc=0.99802 hata=  77 (26.8s)
+/usr/local/lib/python3.13/dist-packages/sklearn/svm/_base.py:1295: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  warnings.warn(
+  Linear SVM           A0: acc=0.9807 f1=0.9808 auc=0.99635 hata= 112 (1.1s)
+  KNN                  A0: acc=0.9060 f1=0.9098 auc=0.96374 hata= 545 (0.0s)
+  Decision Tree        A0: acc=0.9484 f1=0.9490 auc=0.94844 hata= 299 (29.0s)
+  Random Forest        A0: acc=0.9814 f1=0.9815 auc=0.99695 hata= 108 (52.0s)
+
+--- A1: + Ön işleme & TF-IDF ---
+  Naive Bayes          A1: acc=0.9874 f1=0.9874 auc=0.99888 hata=  73 (0.0s)
+  Logistic Regression  A1: acc=0.9843 f1=0.9845 auc=0.99857 hata=  91 (1.7s)
+  Linear SVM           A1: acc=0.9917 f1=0.9918 auc=0.99888 hata=  48 (0.3s)
+  KNN                  A1: acc=0.6005 f1=0.7146 auc=0.97968 hata=2317 (0.0s)
+  Decision Tree        A1: acc=0.9607 f1=0.9609 auc=0.96069 hata= 228 (28.8s)
+  Random Forest        A1: acc=0.9857 f1=0.9858 auc=0.99710 hata=  83 (24.7s)
+
+--- A2: + N-gram, karakter & meta özellikler ---
+  Naive Bayes          A2: acc=0.9881 f1=0.9881 auc=0.99895 hata=  69 (0.3s)
+  Logistic Regression  A2: acc=0.9898 f1=0.9899 auc=0.99923 hata=  59 (15.1s)
+  Linear SVM           A2: acc=0.9929 f1=0.9930 auc=0.99948 hata=  41 (4.5s)
+  KNN                  A2: acc=0.9034 f1=0.9118 auc=0.98533 hata= 560 (1.2s)
+  Decision Tree        A2: acc=0.9336 f1=0.9340 auc=0.93362 hata= 385 (188.4s)
+  Random Forest        A2: acc=0.9833 f1=0.9835 auc=0.99790 hata=  97 (46.8s)
+
+--- A3: + Özellik seçimi & hiperparametre opt. ---
+  Naive Bayes: en iyi {"clf__alpha": 0.003, "sel__k": "all"} (CV acc=0.9909, 31s)
+  Naive Bayes          A3: acc=0.9926 f1=0.9926 auc=0.99940 hata=  43 (1.7s)
+  Logistic Regression: en iyi {"clf__C": 10, "sel__k": "all"} (CV acc=0.9899, 25s)
+  Logistic Regression  A3: acc=0.9922 f1=0.9923 auc=0.99950 hata=  45 (7.3s)
+  Linear SVM: en iyi {"clf__C": 10, "sel__k": "all"} (CV acc=0.9912, 25s)
+  Linear SVM           A3: acc=0.9926 f1=0.9926 auc=0.99945 hata=  43 (12.3s)
+  KNN: en iyi {"clf__n_neighbors": 3, "sel__k": "all"} (CV acc=0.9738, 420s)
+  KNN                  A3: acc=0.9824 f1=0.9823 auc=0.99376 hata= 102 (2.7s)
+  Decision Tree: en iyi {"clf__criterion": "gini", "clf__min_samples_leaf": 1, "sel__k": 5000} (CV acc=0.9397, 471s)
+  Decision Tree        A3: acc=0.9402 f1=0.9403 auc=0.94017 hata= 347 (40.8s)
+  Random Forest: en iyi {"clf__max_features": "sqrt", "sel__k": "all"} (CV acc=0.9812, 1461s)
+  Random Forest        A3: acc=0.9826 f1=0.9828 auc=0.99810 hata= 101 (105.6s)
+
+--- A4: + Karar eşiği optimizasyonu ---
+  Naive Bayes          A4: eşik=+0.4907 (OOF acc=0.9909) -> test acc=0.9926
+  Logistic Regression  A4: eşik=+0.5745 (OOF acc=0.9903) -> test acc=0.9929
+  Linear SVM           A4: eşik=+0.0089 (OOF acc=0.9914) -> test acc=0.9928
+  KNN                  A4: eşik=+0.3322 (OOF acc=0.9776) -> test acc=0.9834
+  Decision Tree        A4: eşik=+1.0000 (OOF acc=0.9397) -> test acc=0.9402
+  Random Forest        A4: eşik=+0.5350 (OOF acc=0.9820) -> test acc=0.9838
+
+--- Topluluk yöntemleri (A2 özellikleri + A3 ayarları) ---
+  Soft Voting (NB+LR+SVM+RF) Ensemble: acc=0.9947 f1=0.9947 auc=0.99947 hata=  31 (147.3s)
+  Stacking (meta: LR)  Ensemble: acc=0.9948 f1=0.9948 auc=0.99958 hata=  30 (133.5s)
+  XGBoost              Ensemble: acc=0.9833 f1=0.9834 auc=0.99908 hata=  97 (359.9s)
+  LightGBM             Ensemble: acc=0.9862 f1=0.9863 auc=0.99924 hata=  80 (457.3s)
+
+Enron-Spam
+====================================================================================================
+Test doğruluğu (aşama bazında):
+Aşama                   A0     A1     A2     A3     A4  Kazanç (A4-A0)  Hata azalması %
+Model                                                                                  
+Logistic Regression 0.9867 0.9843 0.9898 0.9922 0.9929          0.0062          46.7532
+Linear SVM          0.9807 0.9917 0.9929 0.9926 0.9928          0.0121          62.5000
+Naive Bayes         0.9898 0.9874 0.9881 0.9926 0.9926          0.0028          27.1186
+Random Forest       0.9814 0.9857 0.9833 0.9826 0.9838          0.0024          12.9630
+KNN                 0.9060 0.6005 0.9034 0.9824 0.9834          0.0774          82.3853
+Decision Tree       0.9484 0.9607 0.9336 0.9402 0.9402         -0.0083         -16.0535
+
+Topluluk yöntemleri:
+                     Model  Accuracy     F1  ROC-AUC  Hata sayısı
+Soft Voting (NB+LR+SVM+RF)    0.9947 0.9947   0.9995           31
+       Stacking (meta: LR)    0.9948 0.9948   0.9996           30
+                   XGBoost    0.9833 0.9834   0.9991           97
+                  LightGBM    0.9862 0.9863   0.9992           80
+
+>>> EN YÜKSEK DOĞRULUK: Stacking (meta: LR) [Ensemble] Accuracy=0.9948, F1=0.9948, ROC-AUC=0.99958
+

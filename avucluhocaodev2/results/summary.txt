@@ -1,0 +1,20 @@
+Enron-Spam
+====================================================================================================
+Test doğruluğu (aşama bazında):
+Aşama                   A0     A1     A2     A3     A4  Kazanç (A4-A0)  Hata azalması %
+Model                                                                                  
+Logistic Regression 0.9867 0.9843 0.9898 0.9922 0.9929          0.0062          46.7532
+Linear SVM          0.9807 0.9917 0.9929 0.9926 0.9928          0.0121          62.5000
+Naive Bayes         0.9898 0.9874 0.9881 0.9926 0.9926          0.0028          27.1186
+Random Forest       0.9814 0.9857 0.9833 0.9826 0.9838          0.0024          12.9630
+KNN                 0.9060 0.6005 0.9034 0.9824 0.9834          0.0774          82.3853
+Decision Tree       0.9484 0.9607 0.9336 0.9402 0.9402         -0.0083         -16.0535
+
+Topluluk yöntemleri:
+                     Model  Accuracy     F1  ROC-AUC  Hata sayısı
+Soft Voting (NB+LR+SVM+RF)    0.9947 0.9947   0.9995           31
+       Stacking (meta: LR)    0.9948 0.9948   0.9996           30
+                   XGBoost    0.9833 0.9834   0.9991           97
+                  LightGBM    0.9862 0.9863   0.9992           80
+
+>>> EN YÜKSEK DOĞRULUK: Stacking (meta: LR) [Ensemble] Accuracy=0.9948, F1=0.9948, ROC-AUC=0.99958
