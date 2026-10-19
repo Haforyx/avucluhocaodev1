@@ -40,13 +40,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
-    RocCurveDisplay,
     accuracy_score,
     classification_report,
     confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
+    roc_curve,
     roc_auc_score,
 )
 from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
@@ -290,7 +290,7 @@ def make_plots(results, fitted, X_test, y_test, out_dir: Path, title: str):
         cm = confusion_matrix(y_test, fitted[name].predict(X_test))
         ConfusionMatrixDisplay(cm, display_labels=LABELS).plot(
             ax=ax, colorbar=False, cmap="Blues", values_format="d")
-        ax.set_title(name)
+        ax.set(title=name, xlabel="Tahmin edilen", ylabel="Gerçek")
         ax.grid(False)
     for ax in list(axes.flat)[n:]:
         ax.axis("off")
@@ -299,15 +299,52 @@ def make_plots(results, fitted, X_test, y_test, out_dir: Path, title: str):
     fig.savefig(out_dir / "confusion_matrices.png", dpi=150)
     plt.close(fig)
 
-    # ROC eğrileri
-    fig, ax = plt.subplots(figsize=(7, 6))
+    # ROC eğrileri: hepsi bir arada (tam görünüm + log ölçekli yakın görünüm)
+    model_scores = {name: score_for_auc(fitted[name], X_test) for name in order}
+    fig, (ax_full, ax_zoom) = plt.subplots(1, 2, figsize=(14, 6))
     for name in order:
-        RocCurveDisplay.from_predictions(y_test, score_for_auc(fitted[name], X_test),
-                                         name=name, ax=ax, curve_kwargs={"color": palette[name]})
-    ax.plot([0, 1], [0, 1], "k--", lw=1)
-    ax.set_title(f"{title}: ROC eğrileri (test)")
+        fpr, tpr, _ = roc_curve(y_test, model_scores[name])
+        auc = roc_auc_score(y_test, model_scores[name])
+        for ax in (ax_full, ax_zoom):
+            ax.plot(fpr, tpr, color=palette[name], lw=1.8, label=f"{name} (AUC={auc:.4f})")
+    ax_full.plot([0, 1], [0, 1], "k--", lw=1, label="Rastgele tahmin")
+    ax_full.set(xlabel="Yanlış pozitif oranı (FPR)", ylabel="Doğru pozitif oranı (TPR)",
+                title="Tam görünüm")
+    ax_full.legend(loc="lower right", fontsize=9)
+    ax_zoom.set_xscale("log")
+    ax_zoom.set(xlim=(1e-4, 1), ylim=(0.8, 1.0), xlabel="FPR (log ölçek)", ylabel="TPR",
+                title="Yakın görünüm (sol üst köşe)")
+    fig.suptitle(f"{title}: ROC eğrileri (test)")
     fig.tight_layout()
     fig.savefig(out_dir / "roc_curves.png", dpi=150)
+    plt.close(fig)
+
+    # ROC eğrileri: her algoritma için ayrı grafik + seçilen eşikteki çalışma noktası
+    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4.6 * rows))
+    for ax, name in zip(axes.flat, order):
+        fpr, tpr, _ = roc_curve(y_test, model_scores[name])
+        auc = roc_auc_score(y_test, model_scores[name])
+        pred = fitted[name].predict(X_test)
+        op_fpr = np.mean(pred[y_test.to_numpy() == 0])
+        op_tpr = np.mean(pred[y_test.to_numpy() == 1])
+        ax.plot(fpr, tpr, color=palette[name], lw=2)
+        ax.fill_between(fpr, tpr, alpha=0.12, color=palette[name])
+        ax.scatter([op_fpr], [op_tpr], color="black", zorder=5,
+                   label=f"Çalışma noktası\nFPR={op_fpr:.4f}, TPR={op_tpr:.4f}")
+        ax.plot([0, 1], [0, 1], "k--", lw=0.8)
+        ax.set(title=f"{name}  (AUC={auc:.4f})", xlabel="FPR", ylabel="TPR", xlim=(-0.01, 1), ylim=(0, 1.01))
+        ax.legend(loc="lower right", fontsize=8)
+        # sol üst köşenin büyütülmüş hali
+        ins = ax.inset_axes([0.35, 0.3, 0.4, 0.38])
+        ins.plot(fpr, tpr, color=palette[name], lw=1.5)
+        ins.scatter([op_fpr], [op_tpr], color="black", s=12, zorder=5)
+        ins.set(xlim=(0, 0.1), ylim=(0.9, 1.0))
+        ins.tick_params(labelsize=6)
+    for ax in list(axes.flat)[n:]:
+        ax.axis("off")
+    fig.suptitle(f"{title}: algoritma başına ROC eğrileri (test)")
+    fig.tight_layout()
+    fig.savefig(out_dir / "roc_per_algorithm.png", dpi=150)
     plt.close(fig)
 
     # Eğitim süreleri
