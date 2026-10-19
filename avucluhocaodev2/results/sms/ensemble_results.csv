@@ -1,5 +1,5 @@
 Model,Aşama,Açıklama,Accuracy,F1,ROC-AUC,Hata sayısı,Eşik,Süre (s)
-Soft Voting (NB+LR+SVM+RF),Ensemble,Ensemble,0.98724,0.94323,0.99130,13,0.50000,2.93463
-Stacking (meta: LR),Ensemble,Ensemble,0.98626,0.93913,0.99294,14,0.50000,4.40836
-XGBoost,Ensemble,Ensemble,0.98037,0.91150,0.98891,20,0.50000,15.64599
-LightGBM,Ensemble,Ensemble,0.98135,0.91556,0.98866,19,0.50000,11.75756
+Soft Voting (NB+LR+SVM+RF),Ensemble,Ensemble,0.98724,0.94323,0.99130,13,0.50000,2.63635
+Stacking (meta: LR),Ensemble,Ensemble,0.98626,0.93913,0.99294,14,0.50000,2.95658
+XGBoost,Ensemble,Ensemble,0.98037,0.91150,0.98891,20,0.50000,11.90922
+LightGBM,Ensemble,Ensemble,0.98135,0.91556,0.98866,19,0.50000,9.48093

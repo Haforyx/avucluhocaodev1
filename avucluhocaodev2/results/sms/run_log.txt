@@ -3,11 +3,11 @@
 ##### SMS Spam | eğitim: 4076 | test: 1019 #####
 [A0] özellik matrisi: (4076, 7656)  (0.1s)
 [A1] özellik matrisi: (4076, 2776)  (0.1s)
-[A2] özellik matrisi: (4076, 20792)  (0.8s)
+[A2] özellik matrisi: (4076, 20792)  (1.0s)
 
 --- A0: Temel (CountVectorizer, varsayılan) ---
   Naive Bayes          A0: acc=0.9784 f1=0.9018 auc=0.95754 hata=  22 (0.0s)
-  Logistic Regression  A0: acc=0.9745 f1=0.8818 auc=0.97992 hata=  26 (0.0s)
+  Logistic Regression  A0: acc=0.9745 f1=0.8818 auc=0.97992 hata=  26 (0.1s)
   Linear SVM           A0: acc=0.9794 f1=0.9050 auc=0.98115 hata=  21 (0.0s)
   KNN                  A0: acc=0.9127 f1=0.4027 auc=0.76448 hata=  89 (0.0s)
   Decision Tree        A0: acc=0.9676 f1=0.8533 auc=0.89781 hata=  33 (0.1s)
@@ -23,24 +23,24 @@
 
 --- A2: + N-gram, karakter & meta özellikler ---
   Naive Bayes          A2: acc=0.9774 f1=0.8950 auc=0.97445 hata=  23 (0.0s)
-  Logistic Regression  A2: acc=0.9833 f1=0.9244 auc=0.99078 hata=  17 (0.9s)
+  Logistic Regression  A2: acc=0.9833 f1=0.9244 auc=0.99078 hata=  17 (1.2s)
   Linear SVM           A2: acc=0.9853 f1=0.9345 auc=0.99202 hata=  15 (0.1s)
   KNN                  A2: acc=0.9686 f1=0.8491 auc=0.93546 hata=  32 (0.0s)
-  Decision Tree        A2: acc=0.9715 f1=0.8711 auc=0.90732 hata=  29 (1.4s)
+  Decision Tree        A2: acc=0.9715 f1=0.8711 auc=0.90732 hata=  29 (1.3s)
   Random Forest        A2: acc=0.9823 f1=0.9196 auc=0.98712 hata=  18 (0.4s)
 
 --- A3: + Özellik seçimi & hiperparametre opt. ---
   Naive Bayes: en iyi {"clf__alpha": 0.01, "sel__k": "all"} (CV acc=0.9831, 2s)
   Naive Bayes          A3: acc=0.9755 f1=0.8936 auc=0.98316 hata=  25 (0.0s)
-  Logistic Regression: en iyi {"clf__C": 300, "sel__k": "all"} (CV acc=0.9902, 1s)
-  Logistic Regression  A3: acc=0.9872 f1=0.9442 auc=0.99217 hata=  13 (1.2s)
+  Logistic Regression: en iyi {"clf__C": 300, "sel__k": "all"} (CV acc=0.9902, 0s)
+  Logistic Regression  A3: acc=0.9872 f1=0.9442 auc=0.99217 hata=  13 (1.1s)
   Linear SVM: en iyi {"clf__C": 10, "sel__k": "all"} (CV acc=0.9907, 0s)
   Linear SVM           A3: acc=0.9843 f1=0.9304 auc=0.99202 hata=  16 (0.1s)
   KNN: en iyi {"clf__n_neighbors": 7, "sel__k": 20000} (CV acc=0.9845, 2s)
   KNN                  A3: acc=0.9853 f1=0.9356 auc=0.98370 hata=  15 (0.0s)
   Decision Tree: en iyi {"clf__criterion": "gini", "clf__min_samples_leaf": 3, "sel__k": "all"} (CV acc=0.9774, 4s)
-  Decision Tree        A3: acc=0.9715 f1=0.8688 auc=0.90937 hata=  29 (1.2s)
-  Random Forest: en iyi {"clf__max_features": 0.01, "sel__k": 20000} (CV acc=0.9818, 21s)
+  Decision Tree        A3: acc=0.9715 f1=0.8688 auc=0.90937 hata=  29 (1.1s)
+  Random Forest: en iyi {"clf__max_features": 0.01, "sel__k": 20000} (CV acc=0.9818, 18s)
   Random Forest        A3: acc=0.9814 f1=0.9148 auc=0.98823 hata=  19 (1.8s)
 
 --- A4: + Karar eşiği optimizasyonu ---
@@ -52,10 +52,10 @@
   Random Forest        A4: eşik=+0.3925 (OOF acc=0.9875) -> test acc=0.9823
 
 --- Topluluk yöntemleri (A2 özellikleri + A3 ayarları) ---
-  Soft Voting (NB+LR+SVM+RF) Ensemble: acc=0.9872 f1=0.9432 auc=0.99130 hata=  13 (2.9s)
-  Stacking (meta: LR)  Ensemble: acc=0.9863 f1=0.9391 auc=0.99294 hata=  14 (4.4s)
-  XGBoost              Ensemble: acc=0.9804 f1=0.9115 auc=0.98891 hata=  20 (15.6s)
-  LightGBM             Ensemble: acc=0.9814 f1=0.9156 auc=0.98866 hata=  19 (11.8s)
+  Soft Voting (NB+LR+SVM+RF) Ensemble: acc=0.9872 f1=0.9432 auc=0.99130 hata=  13 (2.6s)
+  Stacking (meta: LR)  Ensemble: acc=0.9863 f1=0.9391 auc=0.99294 hata=  14 (3.0s)
+  XGBoost              Ensemble: acc=0.9804 f1=0.9115 auc=0.98891 hata=  20 (11.9s)
+  LightGBM             Ensemble: acc=0.9814 f1=0.9156 auc=0.98866 hata=  19 (9.5s)
 
 SMS Spam
 ====================================================================================================
@@ -78,3 +78,17 @@ Soft Voting (NB+LR+SVM+RF)    0.9872 0.9432   0.9913           13
 
 >>> EN YÜKSEK DOĞRULUK: Logistic Regression [A3] Accuracy=0.9872, F1=0.9442, ROC-AUC=0.99217
 
+
+McNemar testi:
+                                                    Karşılaştırma  Yalnız ilki doğru  Yalnız ikincisi doğru     p-değeri  Anlamlı (p<0.05)
+             Logistic Regression [A3] vs Logistic Regression [A3]                  0                      0 1.000000e+00             False
+                     Logistic Regression [A3] vs Naive Bayes [A0]                 11                      2 2.246094e-02              True
+             Logistic Regression [A3] vs Logistic Regression [A0]                 16                      3 4.425049e-03              True
+                      Logistic Regression [A3] vs Linear SVM [A0]                 11                      3 5.737305e-02             False
+                             Logistic Regression [A3] vs KNN [A0]                 80                      4 2.097271e-19              True
+                   Logistic Regression [A3] vs Decision Tree [A0]                 23                      3 8.797646e-05              True
+                   Logistic Regression [A3] vs Random Forest [A0]                 21                      3 2.771616e-04              True
+Logistic Regression [A3] vs Soft Voting (NB+LR+SVM+RF) [Ensemble]                  2                      2 1.000000e+00             False
+       Logistic Regression [A3] vs Stacking (meta: LR) [Ensemble]                  2                      1 1.000000e+00             False
+                   Logistic Regression [A3] vs XGBoost [Ensemble]                 10                      3 9.228516e-02             False
+                  Logistic Regression [A3] vs LightGBM [Ensemble]                  8                      2 1.093750e-01             False

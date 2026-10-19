@@ -289,8 +289,36 @@ def run(df: pd.DataFrame, out: Path, title: str, cv_splits: int = 3):
     res.to_csv(out / "stage_results.csv", index=False, float_format="%.5f")
     ens.to_csv(out / "ensemble_results.csv", index=False, float_format="%.5f")
     save_summary(res, out, title)
+    # Test skorları: grafiklerin ve istatistiksel testlerin yeniden üretilebilmesi için
+    np.savez_compressed(out / "test_scores.npz", y_test=y_te,
+                        **{f"{m}|{st}": v for (m, st), v in roc_scores.items()})
+    significance_tests(res, roc_scores, y_te, out)
     plot_all(res, roc_scores, y_te, out, title)
     return res
+
+
+def significance_tests(res, roc_scores, y, out: Path):
+    """En doğru model ile (a) her algoritmanın temel hali, (b) en iyi tek model arasında McNemar testi."""
+    def pred(model, stage):
+        r = res[(res["Model"] == model) & (res["Aşama"] == stage)].iloc[0]
+        return (roc_scores[(model, stage)] >= r["Eşik"]).astype(int)
+
+    top = res.sort_values(["Accuracy", "ROC-AUC"], ascending=False).iloc[0]
+    singles = res[res["Aşama"].isin(STAGES)].sort_values("Accuracy", ascending=False)
+    pairs = [(singles.iloc[0]["Model"], singles.iloc[0]["Aşama"])]
+    pairs += [(m, "A0") for m in default_models()]
+    pairs += [(m, "Ensemble") for m in res.loc[res["Aşama"] == "Ensemble", "Model"]]
+    pairs = [pr for pr in pairs if pr != (top["Model"], top["Aşama"])]
+    p_top = pred(top["Model"], top["Aşama"])
+    rows = []
+    for m, st in pairs:
+        b, c, p = sc.mcnemar(y, p_top, pred(m, st))
+        rows.append({"Karşılaştırma": f"{top['Model']} [{top['Aşama']}] vs {m} [{st}]",
+                     "Yalnız ilki doğru": b, "Yalnız ikincisi doğru": c, "p-değeri": p,
+                     "Anlamlı (p<0.05)": p < 0.05})
+    mc = pd.DataFrame(rows)
+    mc.to_csv(out / "mcnemar.csv", index=False, float_format="%.3g")
+    print("\nMcNemar testi:\n" + mc.to_string(index=False))
 
 
 def ensemble_models(tuned):
@@ -514,7 +542,16 @@ def main():
     if args.replot:
         out = ROOT / "results" if args.dataset == "enron" else ROOT / "results" / "sms"
         title = "Enron-Spam" if args.dataset == "enron" else "SMS Spam"
-        plot_summary(pd.read_csv(out / "stage_results.csv"), out, title)
+        res = pd.read_csv(out / "stage_results.csv")
+        npz = out / "test_scores.npz"
+        if npz.exists():  # skorlar kayıtlıysa ROC grafikleri ve testler de yeniden üretilir
+            data = np.load(npz)
+            y = data["y_test"]
+            roc_scores = {tuple(k.split("|")): data[k] for k in data.files if k != "y_test"}
+            significance_tests(res, roc_scores, y, out)
+            plot_all(res, roc_scores, y, out, title)
+        else:
+            plot_summary(res, out, title)
         return
 
     if args.dataset == "enron":
