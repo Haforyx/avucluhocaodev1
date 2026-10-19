@@ -1,0 +1,7 @@
+Model,Enron F1,SMS F1
+Linear SVM,0.9928,0.9292
+Naive Bayes,0.9919,0.9099
+Logistic Regression,0.9918,0.9204
+KNN,0.9867,0.8930
+Random Forest,0.9846,0.8837
+Decision Tree,0.9556,0.8407

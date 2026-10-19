@@ -1,0 +1,11 @@
+Karşılaştırma,Yalnız ilki doğru,Yalnız ikincisi doğru,p-değeri,Anlamlı (p<0.05)
+Stacking (meta: LR) [Ensemble] vs Logistic Regression [A4],16,5,0.0266,True
+Stacking (meta: LR) [Ensemble] vs Naive Bayes [A0],39,10,3.85e-05,True
+Stacking (meta: LR) [Ensemble] vs Logistic Regression [A0],55,8,9.76e-10,True
+Stacking (meta: LR) [Ensemble] vs Linear SVM [A0],92,10,9.4e-18,True
+Stacking (meta: LR) [Ensemble] vs KNN [A0],524,9,6.47e-142,True
+Stacking (meta: LR) [Ensemble] vs Decision Tree [A0],276,7,3.53e-72,True
+Stacking (meta: LR) [Ensemble] vs Random Forest [A0],85,7,3.85e-18,True
+Stacking (meta: LR) [Ensemble] vs Soft Voting (NB+LR+SVM+RF) [Ensemble],3,2,1,False
+Stacking (meta: LR) [Ensemble] vs XGBoost [Ensemble],76,9,2.41e-14,True
+Stacking (meta: LR) [Ensemble] vs LightGBM [Ensemble],59,9,3.91e-10,True

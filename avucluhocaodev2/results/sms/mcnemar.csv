@@ -1,0 +1,11 @@
+Karşılaştırma,Yalnız ilki doğru,Yalnız ikincisi doğru,p-değeri,Anlamlı (p<0.05)
+Logistic Regression [A3] vs Naive Bayes [A0],11,2,0.0225,True
+Logistic Regression [A3] vs Logistic Regression [A0],16,3,0.00443,True
+Logistic Regression [A3] vs Linear SVM [A0],11,3,0.0574,False
+Logistic Regression [A3] vs KNN [A0],80,4,2.1e-19,True
+Logistic Regression [A3] vs Decision Tree [A0],23,3,8.8e-05,True
+Logistic Regression [A3] vs Random Forest [A0],21,3,0.000277,True
+Logistic Regression [A3] vs Soft Voting (NB+LR+SVM+RF) [Ensemble],2,2,1,False
+Logistic Regression [A3] vs Stacking (meta: LR) [Ensemble],2,1,1,False
+Logistic Regression [A3] vs XGBoost [Ensemble],10,3,0.0923,False
+Logistic Regression [A3] vs LightGBM [Ensemble],8,2,0.109,False

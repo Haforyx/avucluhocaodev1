@@ -1,0 +1,60 @@
+=== Naive Bayes ===
+              precision    recall  f1-score   support
+
+         ham     0.9924    0.9914    0.9919      2899
+        spam     0.9914    0.9924    0.9919      2901
+
+    accuracy                         0.9919      5800
+   macro avg     0.9919    0.9919    0.9919      5800
+weighted avg     0.9919    0.9919    0.9919      5800
+
+=== Logistic Regression ===
+              precision    recall  f1-score   support
+
+         ham     0.9965    0.9869    0.9917      2899
+        spam     0.9870    0.9966    0.9918      2901
+
+    accuracy                         0.9917      5800
+   macro avg     0.9918    0.9917    0.9917      5800
+weighted avg     0.9918    0.9917    0.9917      5800
+
+=== Linear SVM ===
+              precision    recall  f1-score   support
+
+         ham     0.9976    0.9879    0.9927      2899
+        spam     0.9881    0.9976    0.9928      2901
+
+    accuracy                         0.9928      5800
+   macro avg     0.9928    0.9928    0.9928      5800
+weighted avg     0.9928    0.9928    0.9928      5800
+
+=== KNN ===
+              precision    recall  f1-score   support
+
+         ham     0.9876    0.9859    0.9867      2899
+        spam     0.9859    0.9876    0.9867      2901
+
+    accuracy                         0.9867      5800
+   macro avg     0.9867    0.9867    0.9867      5800
+weighted avg     0.9867    0.9867    0.9867      5800
+
+=== Decision Tree ===
+              precision    recall  f1-score   support
+
+         ham     0.9748    0.9334    0.9537      2899
+        spam     0.9362    0.9759    0.9556      2901
+
+    accuracy                         0.9547      5800
+   macro avg     0.9555    0.9546    0.9546      5800
+weighted avg     0.9555    0.9547    0.9546      5800
+
+=== Random Forest ===
+              precision    recall  f1-score   support
+
+         ham     0.9930    0.9759    0.9843      2899
+        spam     0.9763    0.9931    0.9846      2901
+
+    accuracy                         0.9845      5800
+   macro avg     0.9846    0.9845    0.9845      5800
+weighted avg     0.9846    0.9845    0.9845      5800
+

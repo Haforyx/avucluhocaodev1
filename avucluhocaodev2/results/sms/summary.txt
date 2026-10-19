@@ -1,0 +1,20 @@
+SMS Spam
+====================================================================================================
+Test doğruluğu (aşama bazında):
+Aşama                   A0     A1     A2     A3     A4  Kazanç (A4-A0)  Hata azalması %
+Model                                                                                  
+Logistic Regression 0.9745 0.9735 0.9833 0.9872 0.9863          0.0118          46.1538
+Linear SVM          0.9794 0.9843 0.9853 0.9843 0.9853          0.0059          28.5714
+KNN                 0.9127 0.9185 0.9686 0.9853 0.9843          0.0716          82.0225
+Naive Bayes         0.9784 0.9676 0.9774 0.9755 0.9833          0.0049          22.7273
+Random Forest       0.9696 0.9764 0.9823 0.9814 0.9823          0.0128          41.9355
+Decision Tree       0.9676 0.9647 0.9715 0.9715 0.9696          0.0020           6.0606
+
+Topluluk yöntemleri:
+                     Model  Accuracy     F1  ROC-AUC  Hata sayısı
+Soft Voting (NB+LR+SVM+RF)    0.9872 0.9432   0.9913           13
+       Stacking (meta: LR)    0.9863 0.9391   0.9929           14
+                   XGBoost    0.9804 0.9115   0.9889           20
+                  LightGBM    0.9814 0.9156   0.9887           19
+
+>>> EN YÜKSEK DOĞRULUK: Logistic Regression [A3] Accuracy=0.9872, F1=0.9442, ROC-AUC=0.99217

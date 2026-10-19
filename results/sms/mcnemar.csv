@@ -1,0 +1,6 @@
+Karşılaştırma,Yalnız Linear SVM doğru,Yalnız diğeri doğru,p-değeri,Anlamlı (p<0.05)
+Linear SVM vs Logistic Regression,2,0,0.5,False
+Linear SVM vs Naive Bayes,6,2,0.289,False
+Linear SVM vs KNN,9,2,0.0654,False
+Linear SVM vs Random Forest,11,2,0.0225,True
+Linear SVM vs Decision Tree,22,2,3.59e-05,True
