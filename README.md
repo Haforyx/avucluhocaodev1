@@ -4,7 +4,9 @@
 > eğitilecek, gerekli test işlemlerinden sonra en iyi sonucu veren algoritma belirlenecek.
 >
 > **Ödev 2** (doğruluğu artırma yöntemleri + her algoritmanın ROC eğrileri) →
-> [`avucluhocaodev2/`](avucluhocaodev2/README.md)
+> [`avucluhocaodev2/`](avucluhocaodev2/README.md) — ön işleme/TF-IDF, n-gram ve karakter özellikleri,
+> özellik seçimi + hiperparametre optimizasyonu, karar eşiği optimizasyonu ve topluluk yöntemleriyle
+> doğruluk **%98,98 → %99,48**'e (Stacking) çıkarılmış, her algoritmanın ROC eğrisi çizilmiştir.
 
 ## Sonuç (özet)
 
@@ -144,6 +146,9 @@ gösterir. Ayrıntılar: [`results/sms/`](results/sms).
 ├── results/                      # Tablolar, grafikler, raporlar, en iyi model (best_model.joblib)
 │   └── sms/                      # SMS veri seti sonuçları
 └── avucluhocaodev2/              # Ödev 2: doğruluğu artırma yöntemleri + ROC eğrileri
+    ├── improve_accuracy.py       #   deney betiği (A0-A4 aşamaları + topluluklar)
+    ├── improve_accuracy.ipynb    #   sonuç not defteri
+    └── results/                  #   tablolar, ROC grafikleri, McNemar testleri
 ```
 
 ## 6. Çalıştırma

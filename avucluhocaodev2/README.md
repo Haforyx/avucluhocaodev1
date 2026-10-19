@@ -182,8 +182,10 @@ Aynı deney, kısa metinlerden oluşan ve dengesiz (%12 spam) SMS veri setinde d
   ve meta özellikler (rakam oranı, büyük harf, para simgesi — "WIN £1000, call 0800...") önemli bilgi taşır.
 * Sınıflar dengesiz olduğu için **karar eşiği optimizasyonu** Naive Bayes'te belirgin kazanç sağlar
   (%97,55 → %98,33).
-* Test kümesi küçük olduğu için (1 hata = %0,1) en iyi birkaç yöntem arasındaki farklar istatistiksel olarak
-  ayırt edilemeyecek kadar küçüktür; genel eğilim Enron ile aynıdır.
+* **McNemar testi** ([`results/sms/mcnemar.csv`](results/sms/mcnemar.csv)): optimize edilmiş Logistic Regression,
+  temel (A0) Naive Bayes, Logistic Regression, KNN, Decision Tree ve Random Forest'tan **anlamlı olarak**
+  daha iyidir (p < 0,05). En iyi birkaç yöntem (optimize LR, Soft Voting, Stacking) arasındaki farklar ise
+  1.019 mesajlık test kümesinde anlamlı değildir (p = 1,0); genel eğilim Enron ile aynıdır.
 
 ![SMS doğruluk merdiveni](results/sms/accuracy_ladder.png)
 ![SMS ROC eğrileri](results/sms/roc_all_algorithms.png)
