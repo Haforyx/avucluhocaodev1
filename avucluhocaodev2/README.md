@@ -16,6 +16,9 @@
 
 Doğruluğu artırmak için uygulanan yöntemler ile hatalı tahmin sayısı **59'dan 30'a (%49 azalma)** inmiştir.
 Ödev 1'deki en iyi modele göre hata sayısı 42'den 30'a düşmüştür (%29 azalma).
+**McNemar testi** ([`results/mcnemar.csv`](results/mcnemar.csv)): Stacking, en iyi tek modelden (optimize Logistic
+Regression, 41 hata) istatistiksel olarak anlamlı biçimde daha iyidir (p = 0,027) ve tüm temel (A0) modelleri
+anlamlı olarak geçer (p < 0,001); Soft Voting ile arasındaki fark (31 hata) anlamlı değildir (p = 1,0).
 
 En büyük katkıyı sağlayan yöntemler (Enron-Spam):
 
