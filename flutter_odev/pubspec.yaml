@@ -1,0 +1,49 @@
+name: avuclu_hoca
+description: "Avuçlu Hoca: öğrenciler için ders, ödev ve odak takip uygulaması"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  # Durum yönetimi
+  provider: ^6.1.5+1
+  # Yerel veritabanı (Android/iOS'ta dosya, web'de IndexedDB)
+  hive_ce: ^2.22.0
+  hive_ce_flutter: ^2.5.0
+  # Tarih biçimlendirme (Türkçe)
+  intl: ^0.20.3
+  # Şifre özeti (PBKDF2-HMAC-SHA256)
+  crypto: ^3.0.7
+  # Grafikler
+  fl_chart: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Nunito-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Nunito-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-ExtraBold.ttf
+          weight: 800

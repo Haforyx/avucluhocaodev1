@@ -7,6 +7,10 @@
 > [`avucluhocaodev2/`](avucluhocaodev2/README.md) — ön işleme/TF-IDF, n-gram ve karakter özellikleri,
 > özellik seçimi + hiperparametre optimizasyonu, karar eşiği optimizasyonu ve topluluk yöntemleriyle
 > doğruluk **%98,98 → %99,48**'e (Stacking) çıkarılmış, her algoritmanın ROC eğrisi çizilmiştir.
+>
+> **Flutter ödevi** (register + login ekranı, giriş yapınca "Merhaba Hakan") →
+> [`flutter_odev/`](flutter_odev/README.md) — kayıt/giriş akışının üzerine ders, ödev, not ortalaması (GANO),
+> pomodoro odak sayacı ve istatistik ekranlarıyla genişletilmiş "Avuçlu Hoca" öğrenci asistanı uygulaması.
 
 ## Sonuç (özet)
 
