@@ -19,7 +19,7 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.6;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(AvucluHocaApp(db: db, hasher: const PasswordHasher(iterations: 10)));
+    await tester.pumpWidget(AvucluHocaApp(db: db, hasher: const PasswordHasher(iterations: 10, runInBackground: false)));
     await tester.pumpAndSettle();
   }
 

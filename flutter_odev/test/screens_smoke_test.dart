@@ -43,7 +43,7 @@ void main() {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 2.6;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(AvucluHocaApp(db: AppDatabase.inMemory(), hasher: const PasswordHasher(iterations: 10)));
+    await tester.pumpWidget(AvucluHocaApp(db: AppDatabase.inMemory(), hasher: const PasswordHasher(iterations: 10, runInBackground: false)));
     await tester.pumpAndSettle();
     await tap(tester, find.text('Demo hesabıyla dene'));
   }

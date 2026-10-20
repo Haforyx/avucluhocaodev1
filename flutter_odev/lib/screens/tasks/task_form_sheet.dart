@@ -62,11 +62,14 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
   Future<void> _pickDate() async {
     final now = DateTime.now();
     final initial = _due ?? now;
+    // Eski tarihli bir görev düzenlenirken de seçici açılabilsin.
+    final first = DateTime(now.year - 1);
+    final last = DateTime(now.year + 3);
     final date = await showDatePicker(
       context: context,
       initialDate: initial,
-      firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 3),
+      firstDate: initial.isBefore(first) ? dateOnly(initial) : first,
+      lastDate: initial.isAfter(last) ? initial : last,
     );
     if (date == null || !mounted) return;
     final time = await showTimePicker(

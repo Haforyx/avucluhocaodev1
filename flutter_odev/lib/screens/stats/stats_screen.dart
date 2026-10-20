@@ -60,12 +60,13 @@ class _StatsScreenState extends State<StatsScreen> {
     final daily = StudyStats.dailyTotals(sessions, start, days);
     final total = daily.fold(0, (a, b) => a + b);
     // Ortalama yalnızca geçmiş günlere bölünür (ayın kalanı ortalamayı düşürmesin).
-    final elapsedDays = now.isBefore(end) ? math.max(1, dateOnly(now).difference(start).inDays + 1) : days;
+    final elapsedDays = now.isBefore(end) ? math.max(1, daysBetween(start, now) + 1) : days;
     final average = total / elapsedDays;
     final goalDays = StudyStats.goalDays(sessions, goal, start, days);
     final prevStart = _period == StatsPeriod.week ? addDays(start, -7) : DateTime(start.year, start.month - 1);
     // Süren dönem, önceki dönemin aynı uzunluktaki başıyla karşılaştırılır.
-    final prevTotal = StudyStats.totalMinutes(allSessions, from: prevStart, to: addDays(prevStart, elapsedDays));
+    final prevEnd = addDays(prevStart, elapsedDays);
+    final prevTotal = StudyStats.totalMinutes(allSessions, from: prevStart, to: prevEnd.isAfter(start) ? start : prevEnd);
     final completed = tasks.where((t) => t.completedAt != null && !t.completedAt!.isBefore(start) && t.completedAt!.isBefore(end)).toList();
     final onTime = completed.where((t) => t.dueDate == null || !t.completedAt!.isAfter(t.dueDate!)).length;
 
@@ -203,7 +204,14 @@ class _CourseBreakdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final shares = StudyStats.minutesByCourse(sessions);
+    // Silinmiş derslerin oturumları "Genel çalışma"da toplanır.
+    final known = {for (final c in courses) c.id};
+    final shares = StudyStats.minutesByCourse([
+      for (final s in sessions)
+        known.contains(s.courseId)
+            ? s
+            : StudySession(id: s.id, ownerId: s.ownerId, start: s.start, minutes: s.minutes),
+    ]);
     final total = shares.fold(0, (s, e) => s + e.value);
     if (total == 0) {
       return const Card(

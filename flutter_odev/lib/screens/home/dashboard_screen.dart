@@ -360,7 +360,7 @@ class _ExamCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = context.select<CourseController, Color?>((c) => c.byId(task.courseId)?.color) ??
         Theme.of(context).colorScheme.primary;
-    final days = dateOnly(task.dueDate!).difference(dateOnly(now)).inDays;
+    final days = daysBetween(now, task.dueDate!);
     final scheme = Theme.of(context).colorScheme;
     return SizedBox(
       width: 160,

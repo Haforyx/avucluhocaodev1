@@ -7,6 +7,7 @@ import '../../services/grade_calculator.dart';
 import '../../services/study_stats.dart';
 import '../../services/validators.dart';
 import '../../state/data_controllers.dart';
+import '../../state/focus_controller.dart';
 import '../../utils/format.dart';
 import '../../widgets/common.dart';
 import '../../widgets/task_tile.dart';
@@ -28,6 +29,8 @@ class CourseDetailScreen extends StatelessWidget {
     if (!ok || !context.mounted) return;
     final courses = context.read<CourseController>();
     final tasks = context.read<TaskController>();
+    final focus = context.read<FocusController>();
+    if (focus.courseId == course.id) focus.selectCourse(null);
     Navigator.pop(context);
     await courses.delete(course.id);
     await tasks.detachCourse(course.id);
@@ -279,7 +282,7 @@ class _ScoreDialog extends StatefulWidget {
 class _ScoreDialogState extends State<_ScoreDialog> {
   final _formKey = GlobalKey<FormState>();
   late final _controller = TextEditingController(
-    text: widget.assessment.score == null ? '' : formatScore(widget.assessment.score!),
+    text: widget.assessment.score == null ? '' : formatEditable(widget.assessment.score!),
   );
 
   @override

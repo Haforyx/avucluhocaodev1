@@ -3,12 +3,18 @@ import '../models/study_task.dart';
 
 DateTime dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-/// Haftanın başı (Pazartesi).
-DateTime startOfWeek(DateTime d) => dateOnly(d).subtract(Duration(days: d.weekday - 1));
+/// Haftanın başı (Pazartesi). Takvim günüyle hesaplanır; yaz saati
+/// geçişinde Duration(days:) gibi bir saat kaymaz.
+DateTime startOfWeek(DateTime d) => DateTime(d.year, d.month, d.day - (d.weekday - 1));
 
 DateTime startOfMonth(DateTime d) => DateTime(d.year, d.month);
 
 bool isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+/// İki tarih arasındaki takvim günü farkı (saatler yok sayılır). UTC üzerinden
+/// hesaplandığı için yaz saati geçişinde 23 saatlik gün 0 sayılmaz.
+int daysBetween(DateTime from, DateTime to) =>
+    DateTime.utc(to.year, to.month, to.day).difference(DateTime.utc(from.year, from.month, from.day)).inDays;
 
 /// Takvim günü ekler (yaz saati geçişlerinde Duration(days:) kaymasın diye).
 DateTime addDays(DateTime d, int days) => DateTime(d.year, d.month, d.day + days);

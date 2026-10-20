@@ -16,6 +16,10 @@ String trCapitalize(String s) {
 String trTitleCase(String s) =>
     s.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).map(trCapitalize).join(' ');
 
+/// Güvenlik sorusu cevapları büyük/küçük harf ve boşluk farkı gözetmeden
+/// karşılaştırılır: "  İstanbul " -> "istanbul".
+String normalizeAnswer(String s) => trLower(s.trim()).replaceAll(RegExp(r'\s+'), ' ');
+
 /// Arama için sadeleştirme: küçük harf + Türkçe karakterleri ASCII'ye indirger.
 String foldForSearch(String s) {
   const map = {'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'â': 'a', 'î': 'i', 'û': 'u'};

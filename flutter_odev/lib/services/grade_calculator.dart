@@ -35,6 +35,10 @@ enum LetterGrade {
   }
 }
 
+/// Ağırlık toplamında kabul edilen yuvarlama payı (ör. 33,333 × 3 = 99,999).
+/// Ders formu da aynı payla doğrular.
+const weightTolerance = 0.01;
+
 /// Bir ders için hesaplanan özet.
 class CourseGradeSummary {
   const CourseGradeSummary({
@@ -52,9 +56,9 @@ class CourseGradeSummary {
   /// Bütün kalemlerin toplam ağırlığı (%). Normalde 100 olmalı.
   final double totalWeight;
 
-  bool get isComplete => gradedWeight >= 100 - 1e-9 && average != null;
+  bool get isComplete => gradedWeight >= 100 - weightTolerance && average != null;
 
-  bool get hasWeightProblem => (totalWeight - 100).abs() > 1e-9;
+  bool get hasWeightProblem => (totalWeight - 100).abs() > weightTolerance;
 
   double get remainingWeight => (100 - gradedWeight).clamp(0, 100).toDouble();
 
@@ -114,7 +118,7 @@ class GradeCalculator {
   static double? requiredScoreFor(List<Assessment> assessments, double target) {
     final summary = summarize(assessments);
     final remaining = 100 - summary.gradedWeight;
-    if (remaining <= 1e-9) return null;
+    if (remaining <= weightTolerance) return null;
     return (target - earnedPoints(assessments)) * 100 / remaining;
   }
 

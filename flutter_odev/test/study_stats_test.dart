@@ -41,6 +41,13 @@ void main() {
       expect(startOfWeek(DateTime(2026, 10, 26)), DateTime(2026, 10, 26));
     });
 
+    test('takvim günü farkı saatleri yok sayar', () {
+      expect(daysBetween(DateTime(2026, 10, 20, 23), DateTime(2026, 10, 21, 1)), 1);
+      expect(daysBetween(DateTime(2026, 10, 20, 1), DateTime(2026, 10, 20, 23)), 0);
+      expect(daysBetween(DateTime(2026, 10, 25), DateTime(2026, 10, 18)), -7);
+      expect(daysBetween(DateTime(2026, 3, 28), DateTime(2026, 3, 30)), 2); // yaz saati geçişi
+    });
+
     test('takvim günü ekleme ay sonunu aşar', () {
       expect(addDays(DateTime(2026, 10, 31), 1), DateTime(2026, 11, 1));
       expect(addDays(DateTime(2026, 3, 1), -1), DateTime(2026, 2, 28));
@@ -171,6 +178,12 @@ void main() {
       expect(courseInitials('Olasılık ve İstatistik'), 'Oİ');
       expect(courseInitials('fizik'), 'Fi');
       expect(courseInitials('  '), '?');
+    });
+
+    test('düzenleme alanı hassasiyeti korur', () {
+      expect(formatEditable(33.333), '33,333');
+      expect(formatEditable(40), '40');
+      expect(formatScore(72.25), '72,3');
     });
 
     test('sayaç', () {

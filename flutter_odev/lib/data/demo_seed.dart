@@ -7,6 +7,7 @@ import '../models/study_task.dart';
 import '../services/password_hasher.dart';
 import '../services/study_stats.dart';
 import '../utils/ids.dart';
+import '../utils/text_utils.dart';
 import 'app_database.dart';
 
 /// Uygulamayı boş ekranlarla değil, dolu haliyle görmek için örnek hesap.
@@ -23,31 +24,37 @@ class DemoSeeder {
   final PasswordHasher _hasher;
   final DateTime Function() _clock;
 
+  /// Demo hesabının kimliği burada tutulur; hesap kullanıcı adına göre
+  /// aranmaz, böylece başka bir hesap demo yerine açılamaz.
+  static const _metaKey = 'demo_user_id';
+
   Future<AppUser> ensureDemoUser() async {
-    for (final json in _db.users.all()) {
-      final user = AppUser.fromJson(json);
-      if (user.username == username) return user;
-    }
+    final id = _db.meta.read(_metaKey);
+    final existing = id == null ? null : _db.users.get(id);
+    if (existing != null) return AppUser.fromJson(existing);
 
     final now = _clock();
     final salt = PasswordHasher.newSalt();
     final answerSalt = PasswordHasher.newSalt();
+    final passwordHash = await _hasher.hashAsync(password, salt);
+    final answerHash = await _hasher.hashAsync(normalizeAnswer('İstanbul'), answerSalt);
     final user = AppUser(
       id: newId(),
       fullName: 'Hakan Demir',
       username: username,
       email: 'demo@avucluhoca.app',
-      passwordHash: _hasher.hash(password, salt),
+      passwordHash: passwordHash,
       salt: salt,
       iterations: _hasher.iterations,
       securityQuestion: 'Doğduğun şehir neresi?',
-      securityAnswerHash: '$answerSalt:${_hasher.hash('istanbul', answerSalt)}',
+      securityAnswerHash: '$answerSalt:$answerHash',
       createdAt: now.subtract(const Duration(days: 30)),
       lastLoginAt: now,
       school: 'Avuçlu Hoca Üniversitesi',
       department: 'Bilgisayar Mühendisliği',
     );
     await _db.users.put(user.id, user.toJson());
+    await _db.meta.write(_metaKey, user.id);
     await _seedData(user.id, now);
     return user;
   }

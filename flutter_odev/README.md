@@ -35,9 +35,9 @@
 - **Kayıt:** Her alan anlık doğrulanır. Kullanıcı adı ve e-posta tekrar kullanılamaz, şifre en az 8 karakterdir ve harf ile rakam içermek zorundadır. Şifre yazılırken 4 kademeli güç çubuğu görünür.
 - **Giriş:** Kullanıcı adı veya e-posta ile yapılır, büyük/küçük harf fark etmez.
 - **Kaba kuvvet koruması:** Kalan deneme hakkı gösterilir, 5 hatalı denemeden sonra hesap 30 saniye kilitlenir. Hata mesajı hangi bilginin yanlış olduğunu söylemez, böylece bir hesabın var olup olmadığı anlaşılamaz.
-- **Şifre saklama:** Şifreler hiçbir zaman açık metin olarak tutulmaz. Kullanıcıya özel rastgele tuzla **PBKDF2-HMAC-SHA256** (10.000 tur) kullanılır, karşılaştırma sabit sürede yapılır. Algoritma RFC 7914 test vektörüyle doğrulanmıştır.
+- **Şifre saklama:** Şifreler hiçbir zaman açık metin olarak tutulmaz. Kullanıcıya özel rastgele tuzla **PBKDF2-HMAC-SHA256** (10.000 tur) kullanılır, karşılaştırma sabit sürede yapılır. Hesaplama ayrı bir isolate'te yapıldığı için arayüz donmaz. Algoritma RFC 7914 test vektörüyle doğrulanmıştır.
 - **Beni hatırla:** İşaretliyse oturum uygulama kapansa da açık kalır ve kullanıcı adı giriş formuna yazılır. İşaretli değilse oturum yalnızca o açılışta geçerlidir.
-- **Şifremi unuttum:** Kayıtta seçilen güvenlik sorusuyla şifre sıfırlanır. Cevap da özetlenerek saklanır; büyük/küçük harf ve boşluk farkı önemsenmez.
+- **Şifremi unuttum:** Kayıtta seçilen güvenlik sorusuyla şifre sıfırlanır. Cevap da özetlenerek saklanır; büyük/küçük harf ve boşluk farkı önemsenmez. Cevap tahminle bulunamasın diye 5 yanlış cevaptan sonra sıfırlama 5 dakika kilitlenir.
 - **Profil:** Ad, e-posta, okul ve bölüm düzenlenebilir. Şifre değiştirmek için mevcut şifre istenir. Hesap silinirse kullanıcının bütün verileri de silinir.
 - Her kullanıcı yalnızca kendi verisini görür. Aynı cihazda birden fazla hesap açılabilir.
 
@@ -123,13 +123,13 @@ lib/
 ## Testler
 
 ```
-flutter test     # 76 test
+flutter test     # 84 test
 ```
 
 | Dosya | Kapsam |
 |---|---|
 | `auth_flow_test.dart` | **Kayıt → "Merhaba Hakan!" → çıkış → hatalı giriş → giriş**, demo hesabı, görev ekleme/tamamlama |
-| `auth_controller_test.dart` | Kayıt çakışmaları, kullanıcı adı/e-posta ile giriş, 5 denemede kilit, beni hatırla, şifre sıfırlama/değiştirme, profil, kullanıcılar arası veri ayrımı, hesap silme |
+| `auth_controller_test.dart` | Kayıt çakışmaları, ayrılmış "demo" adı, kullanıcı adı/e-posta ile giriş, 5 denemede kilit, beni hatırla, şifre sıfırlama (ve sıfırlama kilidi)/değiştirme, profil, kullanıcılar arası veri ayrımı, hesap silme |
 | `password_test.dart` | PBKDF2 (RFC 7914 vektörü), şifre gücü, form doğrulamaları |
 | `grade_calculator_test.dart` | Harf notu sınırları, ağırlıklı ortalama, "finalden kaç almalıyım?", GANO |
 | `study_stats_test.dart` | Seri, günlük toplamlar, dağılımlar, görev filtre ve sıralaması, Türkçe biçimlendirme |

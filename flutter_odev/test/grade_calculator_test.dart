@@ -113,4 +113,11 @@ void main() {
       );
     });
   });
+
+  test('ağırlık toplamındaki küçük yuvarlama payı (33,333 × 3) tamamlanmış sayılır', () {
+    final s = GradeCalculator.summarize([a('1', 33.333, 80), a('2', 33.333, 70), a('3', 33.333, 90)]);
+    expect(s.isComplete, isTrue);
+    expect(s.hasWeightProblem, isFalse);
+    expect(GradeCalculator.requirements([a('1', 33.333, 80), a('2', 33.333, 70), a('3', 33.333, 90)]), isEmpty);
+  });
 }

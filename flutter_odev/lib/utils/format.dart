@@ -42,6 +42,10 @@ String formatNumber(num value, [int digits = 2]) =>
 /// Not gösterimi: 72.0 -> "72", 72.5 -> "72,5", 71.25 -> "71,3"
 String formatScore(double value) => NumberFormat('0.#', 'tr_TR').format(value);
 
+/// Düzenlenecek alanlara yazılan sayı: hassasiyet kaybolmasın diye 3 basamağa
+/// kadar gösterilir (33.333 -> "33,333", 40.0 -> "40").
+String formatEditable(double value) => NumberFormat('0.###', 'tr_TR').format(value);
+
 String formatDateLong(DateTime d) => DateFormat('d MMMM EEEE', 'tr_TR').format(d);
 
 String formatDate(DateTime d) => DateFormat('d MMMM y', 'tr_TR').format(d);
@@ -55,7 +59,7 @@ String formatWeekdayShort(DateTime d) => DateFormat('E', 'tr_TR').format(d);
 /// Teslim tarihini insan diliyle anlatır: "Bugün 17:00", "Yarın 23:59",
 /// "Cuma 12:00", "3 gün gecikti"...
 String formatDue(DateTime due, DateTime now) {
-  final days = dateOnly(due).difference(dateOnly(now)).inDays;
+  final days = daysBetween(now, due);
   final time = formatTime(due);
   final showTime = !(due.hour == 23 && due.minute == 59);
   final suffix = showTime ? ' $time' : '';
@@ -69,7 +73,7 @@ String formatDue(DateTime due, DateTime now) {
 
 /// "3 gün kaldı", "Bugün", "Yarın"
 String formatCountdown(DateTime due, DateTime now) {
-  final days = dateOnly(due).difference(dateOnly(now)).inDays;
+  final days = daysBetween(now, due);
   if (days < 0) return '${-days} gün geçti';
   if (days == 0) return 'Bugün';
   if (days == 1) return 'Yarın';

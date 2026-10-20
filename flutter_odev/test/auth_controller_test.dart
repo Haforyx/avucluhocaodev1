@@ -194,4 +194,73 @@ void main() {
     courses.dispose();
     tasks.dispose();
   });
+
+  test('"demo" kullanıcı adı ayrılmıştır; demo düğmesi gerçek bir hesabı açmaz', () async {
+    expect(
+      await auth.register(
+        fullName: 'Biri',
+        username: 'Demo',
+        email: 'biri@mail.com',
+        password: 'gizli1234',
+        securityQuestion: securityQuestions.first,
+        securityAnswer: 'x',
+      ),
+      contains('ayrılmış'),
+    );
+    await registerHakan(auth);
+    final hakanId = auth.currentUser!.id;
+    await auth.logout();
+    await auth.loginDemo();
+    expect(auth.currentUser!.id, isNot(hakanId));
+    expect(auth.currentUser!.username, 'demo');
+  });
+
+  test('güvenlik sorusu 5 kez yanlış cevaplanınca sıfırlama kilitlenir', () async {
+    await registerHakan(auth);
+    await auth.logout();
+    for (var i = 0; i < 4; i++) {
+      expect(
+        await auth.resetPassword(identifier: 'hakan', answer: 'ankara', newPassword: 'yeni12345'),
+        contains('deneme hakkın kaldı'),
+      );
+    }
+    expect(
+      await auth.resetPassword(identifier: 'hakan', answer: 'ankara', newPassword: 'yeni12345'),
+      contains('5 dk'),
+    );
+    // Kilitliyken doğru cevap da kabul edilmez.
+    expect(
+      await auth.resetPassword(identifier: 'hakan', answer: 'istanbul', newPassword: 'yeni12345'),
+      contains('sonra tekrar dene'),
+    );
+    now = now.add(const Duration(minutes: 6));
+    expect(await auth.resetPassword(identifier: 'hakan', answer: 'istanbul', newPassword: 'yeni12345'), isNull);
+  });
+
+  test('kullanıcı adı ve e-postayla yapılan hatalı denemeler aynı sayaca yazılır', () async {
+    await registerHakan(auth);
+    await auth.logout();
+    for (var i = 0; i < 2; i++) {
+      await auth.login(identifier: 'hakan', password: 'yanlis');
+      await auth.login(identifier: 'hakan@mail.com', password: 'yanlis');
+    }
+    expect(await auth.login(identifier: 'HAKAN', password: 'yanlis'), contains('sn sonra'));
+  });
+
+  test('hesap silinince e-postayla hatırlanan giriş bilgisi de silinir', () async {
+    await registerHakan(auth);
+    await auth.logout();
+    await auth.login(identifier: 'Hakan@Mail.com', password: 'gizli1234');
+    expect(auth.lastIdentifier, 'Hakan@Mail.com');
+    await auth.deleteAccount('gizli1234');
+    expect(auth.lastIdentifier, isNull);
+  });
+
+  test('e-posta değişince hatırlanan e-posta da güncellenir', () async {
+    await registerHakan(auth);
+    await auth.logout();
+    await auth.login(identifier: 'hakan@mail.com', password: 'gizli1234');
+    await auth.updateProfile(fullName: 'Hakan Yılmaz', email: 'yeni@mail.com', school: '', department: '');
+    expect(auth.lastIdentifier, 'yeni@mail.com');
+  });
 }

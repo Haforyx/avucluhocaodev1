@@ -183,7 +183,7 @@ class _TasksScreenState extends State<TasksScreen> {
       } else if (t.isOverdue(now)) {
         key = 'Gecikenler';
       } else {
-        final days = dateOnly(due).difference(today).inDays;
+        final days = daysBetween(today, due);
         key = switch (days) {
           0 => 'Bugün',
           1 => 'Yarın',

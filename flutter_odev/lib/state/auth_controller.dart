@@ -27,6 +27,7 @@ class AuthController extends ChangeNotifier {
     DateTime Function()? clock,
     this.maxFailedAttempts = 5,
     this.lockDuration = const Duration(seconds: 30),
+    this.resetLockDuration = const Duration(minutes: 5),
   }) : _clock = clock ?? DateTime.now {
     final current = _db.meta.read(_currentKey);
     final stored = current == null ? null : _db.users.get(current);
@@ -42,7 +43,10 @@ class AuthController extends ChangeNotifier {
   final int maxFailedAttempts;
   final Duration lockDuration;
 
-  /// Kimlik (küçük harf) -> hatalı deneme bilgisi.
+  /// Güvenlik sorusu art arda yanlış cevaplanınca sıfırlamanın kilitli kalacağı süre.
+  final Duration resetLockDuration;
+
+  /// `login:<kullanıcı>` / `reset:<kullanıcı>` -> hatalı deneme bilgisi.
   final Map<String, _Attempts> _attempts = {};
 
   AppUser? _user;
@@ -67,24 +71,27 @@ class AuthController extends ChangeNotifier {
   }) async {
     final name = username.trim();
     final mail = email.trim().toLowerCase();
+    if (name.toLowerCase() == DemoSeeder.username) return 'Bu kullanıcı adı demo hesabına ayrılmış.';
     if (_findByUsername(name) != null) return 'Bu kullanıcı adı zaten alınmış.';
     if (_findByEmail(mail) != null) return 'Bu e-posta adresiyle zaten bir hesap var.';
     if (securityAnswer.trim().isEmpty) return 'Güvenlik sorusunun cevabını gir.';
 
-    // Yükleniyor göstergesi çizilebilsin diye hesaplamadan önce bir kare bekle.
-    await Future<void>.delayed(Duration.zero);
     final salt = PasswordHasher.newSalt();
+    final passwordHash = await hasher.hashAsync(password, salt);
+    final answerHash = await _hashAnswer(securityAnswer);
+    // Hesaplama sürerken aynı ad/e-postayla başka bir kayıt yapılmış olabilir.
+    if (_findByUsername(name) != null || _findByEmail(mail) != null) return 'Bu hesap zaten oluşturulmuş.';
     final now = _clock();
     final user = AppUser(
       id: newId(),
       fullName: trTitleCase(fullName),
       username: name,
       email: mail,
-      passwordHash: hasher.hash(password, salt),
+      passwordHash: passwordHash,
       salt: salt,
       iterations: hasher.iterations,
       securityQuestion: securityQuestion,
-      securityAnswerHash: _hashAnswer(securityAnswer),
+      securityAnswerHash: answerHash,
       createdAt: now,
       lastLoginAt: now,
       school: school.trim(),
@@ -103,18 +110,21 @@ class AuthController extends ChangeNotifier {
     bool rememberMe = true,
   }) async {
     final id = identifier.trim().toLowerCase();
-    final lock = _lockMessage(id);
+    final user = _findByIdentifier(id);
+    // Kullanıcı adı ve e-postayla yapılan denemeler aynı sayaca yazılır.
+    final key = 'login:${user?.id ?? id}';
+    final lock = _lockMessage(key);
     if (lock != null) return lock;
 
-    await Future<void>.delayed(Duration.zero);
-    final user = _findByIdentifier(id);
-    if (user == null || !hasher.verify(password, user.salt, user.passwordHash, iterations: user.iterations)) {
-      final left = _registerFailure(id);
+    final ok = user != null &&
+        await hasher.verifyAsync(password, user.salt, user.passwordHash, iterations: user.iterations);
+    if (!ok) {
+      final left = _registerFailure(key, lockDuration);
       // Hangi bilginin yanlış olduğu söylenmez; hesap varlığı dışarı sızmasın.
-      if (left <= 0) return _lockMessage(id);
+      if (left <= 0) return _lockMessage(key);
       return 'Kullanıcı adı/e-posta veya şifre hatalı. ($left deneme hakkın kaldı)';
     }
-    _attempts.remove(id);
+    _attempts.remove(key);
     final updated = user.copyWith(lastLoginAt: _clock());
     await _db.users.put(updated.id, updated.toJson());
     await _startSession(updated, remember: rememberMe, identifier: identifier.trim());
@@ -123,7 +133,6 @@ class AuthController extends ChangeNotifier {
 
   /// Örnek verili demo hesabıyla giriş (ilk seferde hesap ve veriler oluşturulur).
   Future<void> loginDemo() async {
-    await Future<void>.delayed(Duration.zero);
     final user = await DemoSeeder(_db, hasher, _clock).ensureDemoUser();
     await _startSession(user, remember: true, identifier: user.username);
   }
@@ -147,10 +156,18 @@ class AuthController extends ChangeNotifier {
   }) async {
     final user = _findByIdentifier(identifier.trim().toLowerCase());
     if (user == null) return 'Bu bilgilerle kayıtlı bir hesap bulunamadı.';
-    if (!_verifyAnswer(answer, user.securityAnswerHash)) return 'Güvenlik sorusunun cevabı yanlış.';
+    // Cevap tahminle bulunamasın diye sıfırlama denemeleri de sınırlıdır.
+    final key = 'reset:${user.id}';
+    final lock = _lockMessage(key);
+    if (lock != null) return lock;
+    if (!await _verifyAnswer(answer, user.securityAnswerHash)) {
+      final left = _registerFailure(key, resetLockDuration);
+      if (left <= 0) return _lockMessage(key);
+      return 'Güvenlik sorusunun cevabı yanlış. ($left deneme hakkın kaldı)';
+    }
     await _setPassword(user, newPassword);
-    _attempts.remove(user.username.toLowerCase());
-    _attempts.remove(user.email);
+    _attempts.remove(key);
+    _attempts.remove('login:${user.id}');
     return null;
   }
 
@@ -159,7 +176,7 @@ class AuthController extends ChangeNotifier {
   Future<String?> changePassword({required String current, required String newPassword}) async {
     final user = _user;
     if (user == null) return 'Oturum bulunamadı.';
-    if (!hasher.verify(current, user.salt, user.passwordHash, iterations: user.iterations)) {
+    if (!await hasher.verifyAsync(current, user.salt, user.passwordHash, iterations: user.iterations)) {
       return 'Mevcut şifren hatalı.';
     }
     if (current == newPassword) return 'Yeni şifre eskisiyle aynı olamaz.';
@@ -185,6 +202,10 @@ class AuthController extends ChangeNotifier {
       department: department.trim(),
     );
     await _db.users.put(updated.id, updated.toJson());
+    // Giriş formunda eski e-posta önerilmesin.
+    if (lastIdentifier?.trim().toLowerCase() == user.email && mail != user.email) {
+      await _db.meta.write(_lastIdentifierKey, mail);
+    }
     _user = updated;
     notifyListeners();
     return null;
@@ -194,11 +215,12 @@ class AuthController extends ChangeNotifier {
   Future<String?> deleteAccount(String password) async {
     final user = _user;
     if (user == null) return 'Oturum bulunamadı.';
-    if (!hasher.verify(password, user.salt, user.passwordHash, iterations: user.iterations)) {
+    if (!await hasher.verifyAsync(password, user.salt, user.passwordHash, iterations: user.iterations)) {
       return 'Şifre hatalı.';
     }
     await _db.deleteUserData(user.id);
-    if (_db.meta.read(_lastIdentifierKey)?.toLowerCase() == user.username.toLowerCase()) {
+    final remembered = lastIdentifier?.trim().toLowerCase();
+    if (remembered == user.username.toLowerCase() || remembered == user.email) {
       await _db.meta.remove(_lastIdentifierKey);
     }
     await logout();
@@ -224,26 +246,24 @@ class AuthController extends ChangeNotifier {
     final salt = PasswordHasher.newSalt();
     final updated = user.copyWith(
       salt: salt,
-      passwordHash: hasher.hash(password, salt),
+      passwordHash: await hasher.hashAsync(password, salt),
       iterations: hasher.iterations,
     );
     await _db.users.put(updated.id, updated.toJson());
     if (_user?.id == updated.id) _user = updated;
   }
 
-  String _hashAnswer(String answer) {
+  Future<String> _hashAnswer(String answer) async {
     final salt = PasswordHasher.newSalt();
-    return '$salt:${hasher.hash(_normalizeAnswer(answer), salt)}';
+    return '$salt:${await hasher.hashAsync(normalizeAnswer(answer), salt)}';
   }
 
-  bool _verifyAnswer(String answer, String stored) {
+  Future<bool> _verifyAnswer(String answer, String stored) async {
     final i = stored.indexOf(':');
     if (i < 0) return false;
-    return hasher.verify(_normalizeAnswer(answer), stored.substring(0, i), stored.substring(i + 1));
+    return hasher.verifyAsync(normalizeAnswer(answer), stored.substring(0, i), stored.substring(i + 1));
   }
 
-  /// Cevaplar büyük/küçük harf ve boşluk farkı gözetmeden karşılaştırılır.
-  static String _normalizeAnswer(String s) => trLower(s.trim()).replaceAll(RegExp(r'\s+'), ' ');
 
   Iterable<AppUser> get _users => _db.users.all().map(AppUser.fromJson);
 
@@ -266,28 +286,29 @@ class AuthController extends ChangeNotifier {
       id.contains('@') ? _findByEmail(id) : _findByUsername(id);
 
   /// Kalan deneme hakkını döner.
-  int _registerFailure(String id) {
+  int _registerFailure(String key, Duration lockFor) {
     final now = _clock();
-    final a = _attempts.putIfAbsent(id, _Attempts.new);
+    final a = _attempts.putIfAbsent(key, _Attempts.new);
     a.count++;
     if (a.count >= maxFailedAttempts) {
-      a.lockedUntil = now.add(lockDuration);
+      a.lockedUntil = now.add(lockFor);
       a.count = 0;
       return 0;
     }
     return maxFailedAttempts - a.count;
   }
 
-  String? _lockMessage(String id) {
-    final until = _attempts[id]?.lockedUntil;
+  String? _lockMessage(String key) {
+    final until = _attempts[key]?.lockedUntil;
     if (until == null) return null;
     final left = until.difference(_clock());
     if (left <= Duration.zero) {
-      _attempts[id]!.lockedUntil = null;
+      _attempts[key]!.lockedUntil = null;
       return null;
     }
     final seconds = (left.inMilliseconds / 1000).ceil();
-    return 'Çok fazla hatalı deneme yapıldı. $seconds sn sonra tekrar dene.';
+    final wait = seconds < 60 ? '$seconds sn' : '${(seconds / 60).ceil()} dk';
+    return 'Çok fazla hatalı deneme yapıldı. $wait sonra tekrar dene.';
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/course.dart';
+import '../../services/grade_calculator.dart';
 import '../../services/validators.dart';
 import '../../state/data_controllers.dart';
 import '../../utils/format.dart';
@@ -31,8 +32,8 @@ class _AssessmentDraft {
   _AssessmentDraft({String? id, String name = '', double? weight, double? score, this.date})
       : id = id ?? newId(),
         name = TextEditingController(text: name),
-        weight = TextEditingController(text: weight == null ? '' : formatScore(weight)),
-        score = TextEditingController(text: score == null ? '' : formatScore(score));
+        weight = TextEditingController(text: weight == null ? '' : formatEditable(weight)),
+        score = TextEditingController(text: score == null ? '' : formatEditable(score));
 
   final String id;
   final TextEditingController name;
@@ -128,7 +129,7 @@ class _CourseFormScreenState extends State<CourseFormScreen> {
 
   Future<void> _save() async {
     final valid = _formKey.currentState!.validate();
-    final weightOk = _drafts.isNotEmpty && (_totalWeight - 100).abs() < 0.01;
+    final weightOk = _drafts.isNotEmpty && (_totalWeight - 100).abs() <= weightTolerance;
     setState(() => _showWeightError = !weightOk);
     if (!valid || !weightOk) return;
 
@@ -165,7 +166,7 @@ class _CourseFormScreenState extends State<CourseFormScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final total = _totalWeight;
-    final weightOk = (total - 100).abs() < 0.01;
+    final weightOk = (total - 100).abs() <= weightTolerance;
 
     return Scaffold(
       appBar: AppBar(title: Text(_editing ? 'Dersi düzenle' : 'Yeni ders')),
